@@ -138,7 +138,9 @@ function Add-FileToBlobStorageInternal {
         }
         else {
             Write-Host "Relative folder PATH: $relativeFolder in ELSE"
-            $blobName = "$storageRootPath/$fileName"
+            # $blobName = "$storageRootPath/$fileName"
+            # $blobName = ("$storageRootPath/{0:yyyy}/{0:MM}/{0:dd}/$fileName" -f [datetime]::Today)
+            $blobName = ("{0}/{1:yyyy}/{1:MM}/{1:dd}/{2}" -f $storageRootPath, (Get-Date), $fileName)
         }
         Write-Host "BLOB NAME: $blobName"
         Set-AzStorageBlobContent -File $filePath -Container $env:PBIMONITOR_StorageContainerName -Blob $blobName -Context $ctx -Force | Out-Null

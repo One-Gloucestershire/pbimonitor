@@ -84,6 +84,24 @@ try {
 
     # Save to Blob
 
+    if ($config.StorageAccountConnStr) {
+
+        Write-Host "Writing Snapshots to Blob Storage"
+
+        $storageRootPath = "$($config.StorageAccountContainerRootPath)/catalog"
+
+        foreach ($outputFilePath in $snapshotFiles) {
+            if (Test-Path $outputFilePath) {
+                Add-FileToBlobStorage -storageAccountConnStr $config.StorageAccountConnStr -storageContainerName $config.StorageAccountContainerName -storageRootPath $storageRootPath -filePath $outputFilePath -rootFolderPath $outputPath
+
+                Remove-Item $outputFilePath -Force
+            }
+            else {
+                Write-Warning "Cannot find file '$outputFilePath'"
+            }
+        }
+    }
+
     if ($config.StorageAccountName) {
 
         Write-Host "Writing Snapshots to Blob Storage"
@@ -257,16 +275,17 @@ try {
 
                     # Save to Blob
 
-                    # if ($config.StorageAccountConnStr -and (Test-Path $outputFilePath)) {
+                    if ($config.StorageAccountConnStr -and (Test-Path $outputFilePath)) {
 
-                    #     Write-Host "Writing to Blob Storage"
+                        Write-Host "Writing to Blob Storage"
 
-                    #     $storageRootPath = "$($config.StorageAccountContainerRootPath)/catalog"
+                        $storageRootPath = "$($config.StorageAccountContainerRootPath)/catalog"
 
-                    #     Add-FileToBlobStorage -storageAccountConnStr $config.StorageAccountConnStr -storageContainerName $config.StorageContainerName -storageRootPath $storageRootPath -filePath $outputFilePath -rootFolderPath $outputPath
+                        Add-FileToBlobStorage -storageAccountConnStr $config.StorageAccountConnStr -storageContainerName $config.StorageContainerName -storageRootPath $storageRootPath -filePath $outputFilePath -rootFolderPath $outputPath
 
-                    #     Remove-Item $outputFilePath -Force
-                    # }
+                        Remove-Item $outputFilePath -Force
+                    }
+
                     if ($config.StorageAccountName -and (Test-Path $outputFilePath)) {
                         Write-Host "Uploading to Blob Storage..."
 

@@ -214,6 +214,25 @@ try {
 
             ConvertTo-Json @($dataBatch) -Compress -Depth 5 | Out-File $filePath -Force
 
+            if ($config.StorageAccountConnStr) {
+
+                Write-Host "Writing to Blob Storage"
+
+                $storageRootPath = "$($config.StorageAccountContainerRootPath)/graph"
+
+                $outputFilePath = $filePath
+
+                if (Test-Path $outputFilePath)
+                {
+                    Add-FileToBlobStorage -storageAccountConnStr $config.StorageAccountConnStr -storageContainerName $config.StorageAccountContainerName -storageRootPath $storageRootPath -filePath $outputFilePath -rootFolderPath $rootOutputPath
+
+                    Remove-Item $outputFilePath -Force
+                }
+                else {
+                    Write-Host "Cannot find file '$outputFilePath'"
+                }
+            }
+
             if ($config.StorageAccountName) {
 
                 Write-Host "Writing to Blob Storage"

@@ -132,6 +132,17 @@ try {
 
         ConvertTo-Json @($dsRefreshHistoryGlobal) -Compress -Depth 5 | Out-File $outputFilePath -force
 
+        if ($config.StorageAccountConnStr -and (Test-Path $outputFilePath)) {
+
+            Write-Host "Writing to Blob Storage"
+
+            $storageRootPath = "$($config.StorageAccountContainerRootPath)/datasetrefresh"
+
+            Add-FileToBlobStorage -storageAccountConnStr $config.StorageAccountConnStr -storageContainerName $config.StorageAccountContainerName -storageRootPath $storageRootPath -filePath $outputFilePath -rootFolderPath $rootOutputPath
+
+            Remove-Item $outputFilePath -Force
+        }
+
         if ($config.StorageAccountName -and (Test-Path $outputFilePath)) {
 
             Write-Host "Writing to Blob Storage"

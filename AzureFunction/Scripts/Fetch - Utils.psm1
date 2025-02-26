@@ -30,6 +30,9 @@ function Add-FolderToBlobStorage {
 
         $ctx = New-AzStorageContext -StorageAccountName $StorageAccountName -UseConnectedAccount
     }
+    elseif ($StorageAccountKey) {
+        $ctx = New-AzStorageContext -StorageAccountName $storageAccountName -StorageAccountKey $storageAccountKey
+    }
     else {
         throw "Storage account information is missing. Please provide StorageAccountName."
     }
@@ -78,19 +81,25 @@ function Add-FileToBlobStorage {
         $ensureContainer = $true
     )
 
-    if ($StorageAccountName) {
+    if ($storageAccountConnStr) {
+        $ctx = New-AzStorageContext -ConnectionString $storageAccountConnStr
+    }
+    elseif ($StorageAccountName) {
         # Use Managed Identity if no shared key is provided
         Write-Host "Using Managed Identity for authentication to Storage Account '$StorageAccountName'"
         Write-Host "Ensuring container '$env:PBIMONITOR_StorageContainerName'"
 
         $ctx = New-AzStorageContext -StorageAccountName $StorageAccountName -UseConnectedAccount
     }
+    elseif ($StorageAccountKey) {
+        $ctx = New-AzStorageContext -StorageAccountName $storageAccountName -StorageAccountKey $storageAccountKey
+    }
     else {
         throw "Storage account information is missing. Please provide StorageAccountName."
     }
 
     if ($ensureContainer) {
-        Write-Host "Ensuring container '$env:PBIMONITOR_StorageContainerName'"
+        Write-Host "Ensuring container '$env:PBIMONITOR_StorageContainerName'" # Worked with the env variable if its declared
         # Write-Host "Container Name: '$env:PBIMONITOR_StorageContainerName'"
 
         New-AzStorageContainer -Context $ctx -Name $env:PBIMONITOR_StorageContainerName -Permission Off -ErrorAction SilentlyContinue | Out-Null
@@ -138,9 +147,7 @@ function Add-FileToBlobStorageInternal {
         }
         else {
             Write-Host "Relative folder PATH: $relativeFolder in ELSE"
-            # $blobName = "$storageRootPath/$fileName"
-            # $blobName = ("$storageRootPath/{0:yyyy}/{0:MM}/{0:dd}/$fileName" -f [datetime]::Today)
-            $blobName = ("{0}/{1:yyyy}/{1:MM}/{1:dd}/{2}" -f $storageRootPath, (Get-Date), $fileName)
+            $blobName = ("{0}/{1:yyyy}/{1:MM}/{1:dd}/{2}" -f $storageRootPath, (Get-Date), $fileName) # Forced to add the current date as folders if $relativeFolder empty
         }
         Write-Host "BLOB NAME: $blobName"
         Set-AzStorageBlobContent -File $filePath -Container $env:PBIMONITOR_StorageContainerName -Blob $blobName -Context $ctx -Force | Out-Null

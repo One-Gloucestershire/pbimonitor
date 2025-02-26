@@ -116,6 +116,18 @@ try {
 
                 ConvertTo-Json @($audits) -Compress -Depth 10 | Out-File $outputFilePath -force
 
+                if ($config.StorageAccountConnStr -and (Test-Path $outputFilePath)) {
+                    Write-Host "Writing to Blob Storage"
+
+                    $storageRootPath = "$($config.StorageAccountContainerRootPath)/activity"
+
+                    Add-FileToBlobStorage -storageAccountConnStr $config.StorageAccountConnStr -storageContainerName $config.StorageAccountContainerName -storageRootPath $storageRootPath -filePath $outputFilePath -rootFolderPath $rootOutputPath
+
+                    Write-Host "Deleting local file '$outputFilePath'"
+
+                    Remove-Item $outputFilePath -Force
+                }
+
                 if ($config.StorageAccountName -and $config.StorageAccountContainerName) {
                     Write-Host "Uploading to Blob Storage..."
 
